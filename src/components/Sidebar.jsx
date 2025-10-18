@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import logo from '../assets/logo.png';
 import Icons from './Icons';
+import api from '../api/api';
 
 const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActiveSection, email, onLogout }) => {
   const [expandedSections, setExpandedSections] = useState({});
@@ -30,10 +31,9 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
   // Load user favorites from backend
   useEffect(() => {
     if (email) {
-      fetch(`http://192.168.1.8:8080/api/usage/favorites/${email}`)
-        .then(res => res.json())
-        .then(data => {
-          const items = data.map(usage => getItemById(usage.sectionId)).filter(Boolean);
+      api.get(`/usage/favorites/${email}`)
+        .then(res => {
+          const items = res.data.map(usage => getItemById(usage.sectionId)).filter(Boolean);
           setFavoriteItems(items);
         })
         .catch(err => console.error('Failed to load favorites:', err));
@@ -73,16 +73,11 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
     // Send to backend only after 2 consecutive clicks
     if (newCount >= 2) {
       try {
-        await fetch('http://192.168.1.8:8080/api/usage/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, sectionId })
-        });
+        await api.post('/usage/track', { email, sectionId });
         
         // Refresh favorites
-        const res = await fetch(`http://192.168.1.8:8080/api/usage/favorites/${email}`);
-        const data = await res.json();
-        const items = data.map(usage => getItemById(usage.sectionId)).filter(Boolean);
+        const res = await api.get(`/usage/favorites/${email}`);
+        const items = res.data.map(usage => getItemById(usage.sectionId)).filter(Boolean);
         setFavoriteItems(items);
         
         // Reset count after sending to backend

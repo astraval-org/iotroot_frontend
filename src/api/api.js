@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create an Axios instance for your backend
 const api = axios.create({
-  baseURL: "http://192.168.1.8:8080/api", // <-- Spring Boot backend URL
+  baseURL: "http://localhost:8080/api", // <-- Spring Boot backend URL
   headers: {
     "Content-Type": "application/json",
   },
@@ -14,7 +14,7 @@ api.interceptors.request.use(
   (config) => {
     // You can attach auth token here if needed
     // config.headers.Authorization = `Bearer ${token}`;
-    console.log("Request:", config);
+    // console.log("Request:", config); // Commented to reduce console noise
     return config;
   },
   (error) => Promise.reject(error)
@@ -22,7 +22,7 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    console.log("Response:", response);
+    // console.log("Response:", response); // Commented to reduce console noise
     return response;
   },
   (error) => {
