@@ -249,6 +249,3 @@ const Home = () => {
 };
 
 export default Home;
-
-  git config --global user.email "karthikeyan.aas@gmail.com"
-  git config --global user.name "KKBUGHUNTER"
