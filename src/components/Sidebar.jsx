@@ -33,26 +33,34 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
     if (email) {
       api.get(`/usage/favorites/${email}`)
         .then(res => {
-          const items = res.data.map(usage => getItemById(usage.sectionId)).filter(Boolean);
+          const items = res.data.map(usage => getItemById(usage.sectionId)).filter(Boolean).filter(item => item.id !== 'overview');
           setFavoriteItems(items);
         })
         .catch(err => console.error('Failed to load favorites:', err));
     }
   }, [email]);
 
-  // Get item details by ID
+  // Get item details by ID - prioritize subItems (actual services)
   const getItemById = (id) => {
     if (id === 'overview') return { id: 'overview', label: 'Project Overview', icon: <Icons.Overview /> };
     
+    // First check subItems (actual services that users click)
     for (const category of navigationCategories) {
       for (const item of category.items) {
-        if (item.id === id) return { id: item.id, label: item.label, icon: item.icon };
         if (item.subItems) {
           const subItem = item.subItems.find(sub => sub.id === id);
           if (subItem) return { id: subItem.id, label: subItem.label, icon: subItem.icon };
         }
       }
     }
+    
+    // Then check parent items if not found in subItems
+    for (const category of navigationCategories) {
+      for (const item of category.items) {
+        if (item.id === id) return { id: item.id, label: item.label, icon: item.icon };
+      }
+    }
+    
     return null;
   };
 
@@ -105,8 +113,8 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
           label: 'Device View', 
           expandable: true,
           subItems: [
-            { id: 'device-registry', label: 'Device Registry', icon: <Icons.Device /> },
-            { id: 'thing', label: 'Thing', icon: <Icons.Overview /> },
+            { id: 'device-registry', label: 'Device Registry', icon: <Icons.Overview /> },
+            { id: 'thing', label: 'Thing', icon: <Icons.Device /> },
           ]
         },
       ]
@@ -144,7 +152,7 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
           expandable: true,
           subItems: [
             { id: 'schedules', label: 'Schedules', icon: <Icons.Automation /> },
-            { id: 'triggers', label: 'Triggers', icon: <Icons.Control /> },
+            { id: 'triggers', label: 'Triggers', icon: <Icons.Notification /> },
             { id: 'alerts-notifications', label: 'Alerts & Notifications', icon: <Icons.Notification /> },
           ]
         },
@@ -177,7 +185,7 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
           label: 'Data Layer', 
           expandable: true,
           subItems: [
-            { id: 'device-shadow', label: 'Device Shadow', icon: <Icons.Device /> },
+            { id: 'device-shadow', label: 'Device Shadow', icon: <Icons.Security /> },
             { id: 'device-twin', label: 'Device Twin', icon: <Icons.Overview /> },
             { id: 'data-collection', label: 'Data Collection', icon: <Icons.Data /> },
           ]
@@ -187,7 +195,7 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
           label: 'Control', 
           expandable: true,
           subItems: [
-            { id: 'edge-control', label: 'Edge Control', icon: <Icons.Device /> },
+            { id: 'edge-control', label: 'Edge Control', icon: <Icons.Automation /> },
             { id: 'cloud-control', label: 'Cloud Control', icon: <Icons.Control /> },
           ]
         },
@@ -274,11 +282,11 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
             }}
             className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-1 py-0.5' : 'space-x-3 px-2 py-1'} rounded-md text-left text-sm transition group ${
               activeSection === 'overview'
-                ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'text-gray-700 hover:bg-gray-100'
+                ? 'bg-gray-800 text-white font-medium'
+                : 'bg-gray-800 text-white hover:bg-gray-700'
             }`}
           >
-            {/* <div className="flex-shrink-0"><Icons.Overview /></div> */}
+            <div className="flex-shrink-0"><Icons.Overview /></div>
             {(!sidebarCollapsed || isMobile) && <span>Project Overview</span>}
             
             {/* Hover Tooltip */}
@@ -297,7 +305,7 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
               Favorites
             </div>
           )}
-          <div className="space-y-1">
+          <div className={sidebarCollapsed ? 'space-y-3' : 'space-y-1'}>
             {favoriteItems.map((item) => (
               <div key={item.id} className="relative">
                 <button
@@ -305,7 +313,7 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
                     e.stopPropagation();
                     handleSetActiveSection(item.id);
                   }}
-                  className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-1 py-0.5' : 'space-x-3 px-2 py-1'} rounded-md text-left text-sm transition group ${
+                  className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-1 py-2' : 'space-x-3 px-2 py-1'} rounded-md text-left text-sm transition group ${
                     activeSection === item.id
                       ? 'bg-yellow-100 text-yellow-700 font-medium'
                       : 'text-gray-700 hover:bg-gray-100'
