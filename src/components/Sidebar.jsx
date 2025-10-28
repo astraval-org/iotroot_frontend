@@ -36,7 +36,7 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
           const items = res.data.map(usage => getItemById(usage.sectionId)).filter(Boolean).filter(item => item.id !== 'overview');
           setFavoriteItems(items);
         })
-        .catch(err => console.error('Failed to load favorites:', err));
+        .catch(err => console.error('Failed to load  Recently Used services:', err));
     }
   }, [email]);
 
@@ -302,7 +302,7 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
         <div>
           {(!sidebarCollapsed || isMobile) && (
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">
-              Favorites
+              Recently Used
             </div>
           )}
           <div className={sidebarCollapsed ? 'space-y-3' : 'space-y-1'}>
