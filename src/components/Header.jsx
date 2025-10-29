@@ -113,6 +113,12 @@ const Header = () => {
 
           <div className="flex items-center space-x-4">
             <button
+              onClick={() => navigate('/login')}
+              className="hidden sm:block text-gray-600 hover:text-blue-600 transition-colors font-medium"
+            >
+              Sign In
+            </button>
+            <button
               onClick={() => navigate('/signup')}
               className="hidden sm:block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-2 rounded-md transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
             >
@@ -145,8 +151,14 @@ const Header = () => {
               <button onClick={() => { navigate('/support'); setIsMenuOpen(false); }} className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors font-medium py-2">Support</button>
               <button onClick={() => { navigate('/blog'); setIsMenuOpen(false); }} className="block w-full text-left text-gray-600 hover:text-blue-600 transition-colors font-medium py-2">Blog</button>
               <button
+                onClick={() => { navigate('/login'); setIsMenuOpen(false); }}
+                className="w-full mt-4 border border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-3 rounded-md transition-all duration-300 font-medium"
+              >
+                Sign In
+              </button>
+              <button
                 onClick={() => { navigate('/signup'); setIsMenuOpen(false); }}
-                className="w-full mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-md transition-all duration-300 font-medium"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-md transition-all duration-300 font-medium"
               >
                 <span className="shimmer-text">Start Free</span>
               </button>

@@ -9,8 +9,8 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [favoriteItems, setFavoriteItems] = useState([]);
-  const [usageCount, setUsageCount] = useState({});
-  const [lastClicked, setLastClicked] = useState(null);
+  const [clickHistory, setClickHistory] = useState([]);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const isMobileScreen = window.innerWidth < 768;
@@ -28,15 +28,15 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Load user favorites from backend
+  // Load user favorites from localStorage
   useEffect(() => {
     if (email) {
-      api.get(`/usage/favorites/${email}`)
-        .then(res => {
-          const items = res.data.map(usage => getItemById(usage.sectionId)).filter(Boolean).filter(item => item.id !== 'overview');
-          setFavoriteItems(items);
-        })
-        .catch(err => console.error('Failed to load  Recently Used services:', err));
+      const saved = localStorage.getItem(`favorites_${email}`);
+      if (saved) {
+        const favoriteIds = JSON.parse(saved);
+        const items = favoriteIds.map(id => getItemById(id)).filter(Boolean);
+        setFavoriteItems(items);
+      }
     }
   }, [email]);
 
@@ -64,42 +64,45 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
     return null;
   };
 
-  // Track usage with consecutive click logic
-  const trackUsage = async (sectionId) => {
-    if (!email) return;
+  // Manual pin/unpin functionality
+  const togglePin = (sectionId, e) => {
+    e.stopPropagation();
     
-    // Check if item is already in favorites - if yes, don't track
-    const isInFavorites = favoriteItems.some(item => item.id === sectionId);
-    if (isInFavorites) return;
+    const isCurrentlyPinned = favoriteItems.some(item => item.id === sectionId);
+    let newFavorites;
     
-    const currentCount = usageCount[sectionId] || 0;
-    const newCount = lastClicked === sectionId ? currentCount + 1 : 1;
-    
-    setUsageCount(prev => ({ ...prev, [sectionId]: newCount }));
-    setLastClicked(sectionId);
-    
-    // Send to backend only after 2 consecutive clicks
-    if (newCount >= 2) {
-      try {
-        await api.post('/usage/track', { email, sectionId });
-        
-        // Refresh favorites
-        const res = await api.get(`/usage/favorites/${email}`);
-        const items = res.data.map(usage => getItemById(usage.sectionId)).filter(Boolean);
-        setFavoriteItems(items);
-        
-        // Reset count after sending to backend
-        setUsageCount(prev => ({ ...prev, [sectionId]: 0 }));
-      } catch (err) {
-        console.error('Failed to track usage:', err);
+    if (isCurrentlyPinned) {
+      // Unpin
+      newFavorites = favoriteItems.filter(item => item.id !== sectionId);
+    } else {
+      // Check if already at limit
+      if (favoriteItems.length >= 7) {
+        setNotification('Maximum 7 items can be pinned');
+        setTimeout(() => setNotification(null), 3000);
+        return;
+      }
+      
+      // Pin
+      const item = getItemById(sectionId);
+      if (item) {
+        newFavorites = [...favoriteItems, item];
       }
     }
+    
+    setFavoriteItems(newFavorites);
+    
+    // Save to localStorage
+    const favoriteIds = newFavorites.map(item => item.id);
+    localStorage.setItem(`favorites_${email}`, JSON.stringify(favoriteIds));
+  };
+  
+  const isPinned = (sectionId) => {
+    return favoriteItems.some(item => item.id === sectionId);
   };
 
-  // Enhanced setActiveSection with usage tracking
+  // Enhanced setActiveSection
   const handleSetActiveSection = (sectionId) => {
     setActiveSection(sectionId);
-    trackUsage(sectionId);
   };
   
 
@@ -218,6 +221,13 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
 
   return (
     <>
+      {/* Notification Toast */}
+      {notification && (
+        <div className="fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
+          {notification}
+        </div>
+      )}
+      
       {/* Mobile Hamburger Button */}
       {isMobile && (
         <button
@@ -302,25 +312,25 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
         <div>
           {(!sidebarCollapsed || isMobile) && (
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">
-              Recently Used
+              Favorite
             </div>
           )}
           <div className={sidebarCollapsed ? 'space-y-3' : 'space-y-1'}>
             {favoriteItems.map((item) => (
-              <div key={item.id} className="relative">
+              <div key={item.id} className="relative flex items-center group">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSetActiveSection(item.id);
                   }}
-                  className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-1 py-2' : 'space-x-3 px-2 py-1'} rounded-md text-left text-sm transition group ${
+                  className={`flex-1 flex items-center ${sidebarCollapsed ? 'justify-center px-1 py-2' : 'space-x-3 px-2 py-1'} rounded-md text-left text-sm transition ${
                     activeSection === item.id
                       ? 'bg-yellow-100 text-yellow-700 font-medium'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
                   <div className="flex-shrink-0">{item.icon}</div>
-                  {(!sidebarCollapsed || isMobile) && <span>{item.label}</span>}
+                  {(!sidebarCollapsed || isMobile) && <span className="flex-1">{item.label}</span>}
                   
                   {/* Hover Tooltip */}
                   {sidebarCollapsed && (
@@ -329,6 +339,15 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
                     </div>
                   )}
                 </button>
+                {(!sidebarCollapsed || isMobile) && (
+                  <button
+                    onClick={(e) => togglePin(item.id, e)}
+                    className="ml-1 p-1 rounded text-xs transition opacity-0 group-hover:opacity-100 text-yellow-600 hover:text-red-600"
+                    title="Unpin"
+                  >
+                    🗑️
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -337,7 +356,7 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
         {/* IoTRoot Item Label */}
         {(!sidebarCollapsed || isMobile) && (
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3">
-            IoTRoot Item
+            IoTRoot Service
           </div>
         )}
 
@@ -382,22 +401,34 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
                 {item.expandable && expandedSections[item.id] && (
                   <div className="mt-1 space-y-1">
                     {item.subItems.map((subItem) => (
-                      <button
-                        key={subItem.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSetActiveSection(subItem.id);
-                          setExpandedSections({});
-                        }}
-                        className={`w-full flex items-center space-x-3 px-2 py-1 rounded-md text-left text-sm transition group ${
-                          activeSection === subItem.id
-                            ? 'bg-blue-100 text-blue-700 font-medium'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <div className="flex-shrink-0">{subItem.icon}</div>
-                        <span>{subItem.label}</span>
-                      </button>
+                      <div key={subItem.id} className="flex items-center group">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSetActiveSection(subItem.id);
+                            setExpandedSections({});
+                          }}
+                          className={`flex-1 flex items-center space-x-3 px-2 py-1 rounded-md text-left text-sm transition ${
+                            activeSection === subItem.id
+                              ? 'bg-blue-100 text-blue-700 font-medium'
+                              : 'text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex-shrink-0">{subItem.icon}</div>
+                          <span className="flex-1">{subItem.label}</span>
+                        </button>
+                        <button
+                          onClick={(e) => togglePin(subItem.id, e)}
+                          className={`ml-1 p-1 rounded text-xs transition opacity-0 group-hover:opacity-100 ${
+                            isPinned(subItem.id)
+                              ? 'text-yellow-600 hover:text-yellow-700'
+                              : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                          title={isPinned(subItem.id) ? 'Unpin' : 'Pin'}
+                        >
+                          {isPinned(subItem.id) ? '📌' : '📍'}
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}
