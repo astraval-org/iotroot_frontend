@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import useDocumentTitle from '../hooks/useDocumentTitle';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import useDocumentTitle from '../../hooks/useDocumentTitle';
+import DevelopmentBanner from '../../components/DevelopmentBanner';
 import '../styles/animations.css';
 
 const Pricing = () => {
@@ -15,8 +16,8 @@ const Pricing = () => {
     {
       name: 'Starter',
       description: 'Perfect for small projects',
-      monthlyPrice: 2400,
-      annualPrice: 24000,
+      monthlyPrice: 400,
+      annualPrice: 4000,
       savings: '2 months free',
       features: [
         '10 devices',
@@ -32,12 +33,12 @@ const Pricing = () => {
     {
       name: 'Professional',
       description: 'Most popular for growing businesses',
-      monthlyPrice: 8200,
-      annualPrice: 82000,
-      savings: '2 months free',
+      monthlyPrice: 200,
+      annualPrice: 2000,
+      savings: '1 months free',
       features: [
-        '10,000 devices',
-        '1M messages/month',
+        '10 devices',
+        '1k messages/month',
         'Advanced analytics',
         'Priority support',
         'Full API access',
@@ -51,8 +52,8 @@ const Pricing = () => {
     {
       name: 'Enterprise',
       description: 'For large-scale deployments',
-      monthlyPrice: 24800,
-      annualPrice: 248000,
+      monthlyPrice: 4800,
+      annualPrice: 48000,
       savings: '2 months free',
       features: [
         'Unlimited devices',
@@ -75,6 +76,7 @@ const Pricing = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <Header />
+      <DevelopmentBanner />
 
       {/* Hero Section */}
       <section className="py-20 text-center">

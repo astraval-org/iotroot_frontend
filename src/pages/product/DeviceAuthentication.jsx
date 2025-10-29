@@ -1,4 +1,5 @@
 import React from 'react';
+import DevelopmentBanner from '../../components/DevelopmentBanner';
 
 const DeviceAuthentication = () => {
   return (
@@ -7,6 +8,7 @@ const DeviceAuthentication = () => {
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Device Authentication</h1>
           <p className="text-gray-600">Manage device authentication and security certificates.</p>
+          <DevelopmentBanner />
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

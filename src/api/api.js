@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create an Axios instance for your backend
 const api = axios.create({
-  baseURL: "/api", // <-- Spring Boot backend URL
+  baseURL: import.meta.env.VITE_API_URL, // <-- Spring Boot backend URL
   headers: {
     "Content-Type": "application/json",
   },

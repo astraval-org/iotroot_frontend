@@ -5,6 +5,7 @@ import '../styles/animations.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import DevelopmentBanner from '../components/DevelopmentBanner';
 
 const Home = () => {
   useDocumentTitle('IoTRoot - IoT Ecosystem Management Platform');
@@ -41,6 +42,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-white">
       <Header />
+      <DevelopmentBanner />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-20 relative overflow-hidden">
@@ -48,7 +50,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className={`text-center transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             <div className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6 animate-pulse">
-              🚀 Now supporting 1M+ connected devices
+              🚀 Now supporting 100+ connected devices
             </div>
             <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
               IoT Ecosystem Management Platform

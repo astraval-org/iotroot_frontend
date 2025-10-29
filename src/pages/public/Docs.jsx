@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
+import DevelopmentBanner from '../../components/DevelopmentBanner';
 import '../styles/animations.css';
 
 const Docs = () => {
@@ -209,6 +210,7 @@ def publish_sensor_data():
 
   return (
     <div className="min-h-screen bg-white">
+      <DevelopmentBanner />
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

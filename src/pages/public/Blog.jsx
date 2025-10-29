@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import useDocumentTitle from '../hooks/useDocumentTitle';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import useDocumentTitle from '../../hooks/useDocumentTitle';
+import DevelopmentBanner from '../../components/DevelopmentBanner';
 import '../styles/animations.css';
 
 const Blog = () => {
@@ -86,6 +87,7 @@ const Blog = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <Header />
+      <DevelopmentBanner />
 
       {/* Hero Section */}
       <section className="py-20 text-center">

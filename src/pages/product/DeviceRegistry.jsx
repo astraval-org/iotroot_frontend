@@ -1,4 +1,5 @@
 import React from 'react';
+import DevelopmentBanner from '../../components/DevelopmentBanner';
 
 const DeviceRegistry = () => {
   return (
@@ -7,6 +8,7 @@ const DeviceRegistry = () => {
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Device Registry</h1>
           <p className="text-gray-600">Manage and monitor your IoT device registry.</p>
+          <DevelopmentBanner />
         </div>
         
         <div className="bg-white rounded-lg shadow-sm p-6">
