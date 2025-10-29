@@ -4,7 +4,7 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import DevelopmentBanner from '../../components/DevelopmentBanner';
-import '../styles/animations.css';
+import '../../styles/animations.css';
 
 const Blog = () => {
   useDocumentTitle('Blog - IoTRoot');

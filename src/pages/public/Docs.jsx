@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/logo.png';
+import logo from '../../assets/logo.png';
 import DevelopmentBanner from '../../components/DevelopmentBanner';
-import '../styles/animations.css';
+import '../../styles/animations.css';
 
 const Docs = () => {
   const navigate = useNavigate();

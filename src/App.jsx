@@ -3,12 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import Pricing from "./pages/Pricing";
-import Support from "./pages/Support";
-import Blog from "./pages/Blog";
-import Docs from "./pages/Docs";
-import Products from "./pages/Products";
-import Ecommerce from "./pages/Ecommerce";
+import Pricing from "./pages/public/Pricing";
+import Support from "./pages/public/Support";
+import Blog from "./pages/public/Blog";
+import Docs from "./pages/public/Docs";
+import Products from "./pages/public/Products";
+import Ecommerce from "./pages/public/Ecommerce";
 import MainDashboard from "./pages/MainDashboard";
 
 function App() {
