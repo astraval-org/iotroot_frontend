@@ -282,7 +282,7 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
       <div className="border-t border-gray-200"></div>
       
       {/* Navigation */}
-      <nav className={`flex-1 ${sidebarCollapsed ? 'p-2' : 'p-4'} space-y-4 overflow-y-auto`}>
+      <nav className={`flex-1 ${sidebarCollapsed ? 'p-2' : 'p-4'} space-y-4 overflow-y-auto scrollbar-hide`}>
         {/* Overview */}
         <div className="relative">
           <button

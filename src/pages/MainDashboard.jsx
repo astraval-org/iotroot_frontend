@@ -92,7 +92,7 @@ const MainDashboard = ({ userId, email, onLogout }) => {
       />
       
       {/* Main Content */}
-      <div className={`${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'} md:mr-16 ml-0 mr-12 transition-all duration-300 h-screen overflow-y-auto`}>
+      <div className={`${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'} md:mr-16 ml-0 mr-12 transition-all duration-300 h-screen overflow-y-auto scrollbar-hide`}>
         <div className="p-6">
           {renderContent()}
         </div>
