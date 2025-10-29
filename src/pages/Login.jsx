@@ -1,34 +1,44 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import api from "../api/api";
 import logo from '../assets/logo.png';
 import '../styles/animations.css';
 
 const Login = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    
     try {
       const res = await api.post("/auth/login", { email, password });
-      if (res.data.success) {
-        // Store user data in session
-        sessionStorage.setItem("userId", res.data.userId);
-        sessionStorage.setItem("userEmail", res.data.email);
-        sessionStorage.setItem("username", res.data.username);
+      
+      if (res.data.success && res.data.token) {
+        // Use JWT token from response
+        login(res.data.token, {
+          id: res.data.userId,
+          email: res.data.email,
+          username: res.data.username
+        });
         
         onLoginSuccess(res.data.userId, res.data.email);
         navigate('/dashboard');
       } else {
-        setMessage(res.data.message);
+        setMessage(res.data.message || 'Login failed');
       }
     } catch (err) {
       setMessage(err.response?.data?.message || "Login failed. Please try again.");
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,9 +118,10 @@ const Login = ({ onLoginSuccess }) => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In 🔐
+              {loading ? 'Signing In...' : 'Sign In 🔐'}
             </button>
           </div>
 

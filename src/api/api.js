@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getToken } from "../utils/auth";
 
 // Create an Axios instance for your backend
 const api = axios.create({
@@ -12,9 +13,10 @@ const api = axios.create({
 // Optional: interceptors for logging or auth
 api.interceptors.request.use(
   (config) => {
-    // You can attach auth token here if needed
-    // config.headers.Authorization = `Bearer ${token}`;
-    // console.log("Request:", config); // Commented to reduce console noise
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)

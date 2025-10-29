@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -45,10 +46,13 @@ function App() {
     setIsLoggedIn(false);
     sessionStorage.removeItem("userId");
     sessionStorage.removeItem("userEmail");
+    // Also clear JWT token
+    localStorage.removeItem('token');
   };
 
   return (
-    <Router>
+    <AuthProvider>
+      <Router>
       <Routes>
         <Route
           path="/"
@@ -125,7 +129,8 @@ function App() {
           }
         />
       </Routes>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 }
 
