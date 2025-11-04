@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from "../api/api";
 import logo from '../assets/logo.png';
+import GoogleAuth from '../components/GoogleAuth';
 import '../styles/animations.css';
 
 const Login = ({ onLoginSuccess }) => {
@@ -40,6 +41,33 @@ const Login = ({ onLoginSuccess }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (userData) => {
+    try {
+      const res = await api.post("/auth/google", userData);
+      
+      if (res.data.success && res.data.token) {
+        login(res.data.token, {
+          id: res.data.userId,
+          email: res.data.email,
+          username: res.data.username
+        });
+        
+        onLoginSuccess(res.data.userId, res.data.email);
+        navigate('/dashboard');
+      } else {
+        setMessage(res.data.message || 'Google login failed');
+      }
+    } catch (err) {
+      setMessage("Google login failed. Please try again.");
+      console.error(err);
+    }
+  };
+
+  const handleGoogleError = (error) => {
+    setMessage("Google login failed. Please try again.");
+    console.error('Google Auth Error:', error);
   };
 
   return (
@@ -115,7 +143,7 @@ const Login = ({ onLoginSuccess }) => {
             </div>
           )}
 
-          <div>
+          <div className="space-y-3">
             <button
               type="submit"
               disabled={loading}
@@ -123,6 +151,17 @@ const Login = ({ onLoginSuccess }) => {
             >
               {loading ? 'Signing In...' : 'Sign In 🔐'}
             </button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-gray-50 text-gray-500">Or</span>
+              </div>
+            </div>
+            
+            <GoogleAuth onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
           </div>
 
           <div className="text-center">

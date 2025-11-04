@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../api/api';
 import logo from '../assets/logo.png';
+import GoogleAuth from '../components/GoogleAuth';
 import '../styles/animations.css';
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -51,6 +54,33 @@ const SignUp = () => {
       setMessage(err.response?.data?.error || 'Registration failed. Please try again.');
       setMessageType('error');
     }
+  };
+
+  const handleGoogleSuccess = async (userData) => {
+    try {
+      const res = await api.post("/auth/google", userData);
+      
+      if (res.data.success && res.data.token) {
+        login(res.data.token, {
+          id: res.data.userId,
+          email: res.data.email,
+          username: res.data.username
+        });
+        
+        navigate('/dashboard');
+      } else {
+        setMessage(res.data.message || 'Google signup failed');
+        setMessageType('error');
+      }
+    } catch (err) {
+      setMessage("Google signup failed. Please try again.");
+      setMessageType('error');
+    }
+  };
+
+  const handleGoogleError = (error) => {
+    setMessage("Google signup failed. Please try again.");
+    setMessageType('error');
   };
 
   return (
@@ -194,13 +224,24 @@ const SignUp = () => {
             </div>
           )}
 
-          <div>
+          <div className="space-y-3">
             <button
               type="submit"
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105"
             >
               Create Account 🚀
             </button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-gray-50 text-gray-500">Or</span>
+              </div>
+            </div>
+            
+            <GoogleAuth onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
           </div>
 
           <div className="text-center">
