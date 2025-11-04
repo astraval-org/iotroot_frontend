@@ -28,17 +28,23 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Load user favorites from localStorage
+  // Load user favorites from database
   useEffect(() => {
     if (email) {
-      const saved = localStorage.getItem(`favorites_${email}`);
-      if (saved) {
-        const favoriteIds = JSON.parse(saved);
-        const items = favoriteIds.map(id => getItemById(id)).filter(Boolean);
-        setFavoriteItems(items);
-      }
+      loadFavorites();
     }
   }, [email]);
+  
+  const loadFavorites = async () => {
+    try {
+      const response = await api.get(`/favorites/${email}`);
+      const favoriteIds = response.data.map(item => item.sectionId);
+      const items = favoriteIds.map(id => getItemById(id)).filter(Boolean);
+      setFavoriteItems(items);
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+    }
+  };
 
   // Get item details by ID - prioritize subItems (actual services)
   const getItemById = (id) => {
@@ -65,35 +71,36 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
   };
 
   // Manual pin/unpin functionality
-  const togglePin = (sectionId, e) => {
+  const togglePin = async (sectionId, e) => {
     e.stopPropagation();
     
     const isCurrentlyPinned = favoriteItems.some(item => item.id === sectionId);
-    let newFavorites;
     
-    if (isCurrentlyPinned) {
-      // Unpin
-      newFavorites = favoriteItems.filter(item => item.id !== sectionId);
-    } else {
-      // Check if already at limit
-      if (favoriteItems.length >= 7) {
-        setNotification('Maximum 7 items can be pinned');
-        setTimeout(() => setNotification(null), 3000);
-        return;
+    try {
+      if (isCurrentlyPinned) {
+        // Unpin
+        await api.delete('/favorites/remove', {
+          data: { email, sectionId }
+        });
+      } else {
+        // Check limit
+        if (favoriteItems.length >= 7) {
+          setNotification('Maximum 7 items can be pinned');
+          setTimeout(() => setNotification(null), 3000);
+          return;
+        }
+        
+        // Pin
+        await api.post('/favorites/add', { email, sectionId });
       }
       
-      // Pin
-      const item = getItemById(sectionId);
-      if (item) {
-        newFavorites = [...favoriteItems, item];
-      }
+      // Reload favorites from database
+      await loadFavorites();
+    } catch (error) {
+      console.error('Error toggling pin:', error);
+      setNotification('Error updating favorites');
+      setTimeout(() => setNotification(null), 3000);
     }
-    
-    setFavoriteItems(newFavorites);
-    
-    // Save to localStorage
-    const favoriteIds = newFavorites.map(item => item.id);
-    localStorage.setItem(`favorites_${email}`, JSON.stringify(favoriteIds));
   };
   
   const isPinned = (sectionId) => {
