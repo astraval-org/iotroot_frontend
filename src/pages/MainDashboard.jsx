@@ -29,12 +29,25 @@ const MainDashboard = ({ userId, email, onLogout }) => {
   const [activeSection, setActiveSection] = useState(section || 'overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(true);
+  const [userEmail, setUserEmail] = useState(email);
 
   useEffect(() => {
     if (section) {
       setActiveSection(section);
     }
   }, [section]);
+
+  useEffect(() => {
+    // Ensure email is available from localStorage if not passed as prop
+    if (!userEmail) {
+      const storedEmail = localStorage.getItem("userEmail");
+      if (storedEmail) {
+        setUserEmail(storedEmail);
+      }
+    } else {
+      setUserEmail(email);
+    }
+  }, [email, userEmail]);
 
   const handleSectionChange = (newSection) => {
     setActiveSection(newSection);
@@ -83,12 +96,12 @@ const MainDashboard = ({ userId, email, onLogout }) => {
         setSidebarCollapsed={setSidebarCollapsed}
         activeSection={activeSection}
         setActiveSection={handleSectionChange}
-        email={email}
+        email={userEmail}
         onLogout={onLogout}
       />
       
       <RightSidebar 
-        email={email}
+        email={userEmail}
       />
       
       {/* Main Content */}

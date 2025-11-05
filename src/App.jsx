@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { isTokenValid } from "./utils/auth";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -16,39 +17,79 @@ function App() {
   const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Optional: persist login across page reload
   useEffect(() => {
-    const storedUserId = sessionStorage.getItem("userId");
-    const storedEmail = sessionStorage.getItem("userEmail");
-    if (storedUserId && storedEmail) {
-      setUserId(storedUserId);
-      setUserEmail(storedEmail);
-      setIsLoggedIn(true);
-    }
+    const checkAuth = () => {
+      const storedUserId = localStorage.getItem("userId");
+      const storedEmail = localStorage.getItem("userEmail");
+      const hasValidToken = isTokenValid();
+      
+      if ((storedUserId && storedEmail) || hasValidToken) {
+        setUserId(storedUserId || "");
+        setUserEmail(storedEmail || "");
+        setIsLoggedIn(true);
+      }
+      setLoading(false);
+    };
+    
+    checkAuth();
+    
+    // Listen for storage changes across tabs
+    const handleStorageChange = (e) => {
+      if (e.key === 'logout-event') {
+        setUserId("");
+        setUserEmail("");
+        setIsLoggedIn(false);
+      } else if (e.key === 'userId' || e.key === 'userEmail' || e.key === 'token') {
+        checkAuth();
+      }
+    };
+    
+    // Listen for custom logout event
+    const handleLogoutEvent = () => {
+      setUserId("");
+      setUserEmail("");
+      setIsLoggedIn(false);
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('user-logout', handleLogoutEvent);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('user-logout', handleLogoutEvent);
+    };
   }, []);
 
   const handleLoginSuccess = (userId, email) => {
-    if (!isLoggedIn) {
-      setUserId(userId);
-      setUserEmail(email);
-      setIsLoggedIn(true);
-      sessionStorage.setItem("userId", userId);
-      sessionStorage.setItem("userEmail", email);
-    } else {
-      alert("You are already logged in!");
-    }
+    setUserId(userId);
+    setUserEmail(email);
+    setIsLoggedIn(true);
+    localStorage.setItem("userId", userId);
+    localStorage.setItem("userEmail", email);
   };
 
   const handleLogout = () => {
     setUserId("");
     setUserEmail("");
     setIsLoggedIn(false);
-    sessionStorage.removeItem("userId");
-    sessionStorage.removeItem("userEmail");
-    // Also clear JWT token
-    localStorage.removeItem('token');
+    localStorage.clear();
+    
+    // Trigger logout event for other tabs
+    window.dispatchEvent(new CustomEvent('user-logout'));
+    
+    // Force storage event for cross-tab sync
+    localStorage.setItem('logout-event', Date.now().toString());
+    localStorage.removeItem('logout-event');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <AuthProvider>

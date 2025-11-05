@@ -34,6 +34,13 @@ const Sidebar = ({ sidebarCollapsed, setSidebarCollapsed, activeSection, setActi
       loadFavorites();
     }
   }, [email]);
+
+  // Reload favorites when component mounts or email changes
+  useEffect(() => {
+    if (email && favoriteItems.length === 0) {
+      loadFavorites();
+    }
+  }, [email, favoriteItems.length]);
   
   const loadFavorites = async () => {
     try {

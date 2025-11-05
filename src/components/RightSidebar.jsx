@@ -66,8 +66,13 @@ const RightSidebar = ({ email, onLogout }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    sessionStorage.clear();
+    localStorage.clear();
+    
+    // Trigger logout event for other tabs
+    window.dispatchEvent(new CustomEvent('user-logout'));
+    localStorage.setItem('logout-event', Date.now().toString());
+    localStorage.removeItem('logout-event');
+    
     if (onLogout) onLogout();
     window.location.href = '/';
   };
