@@ -18,6 +18,12 @@ export default defineConfig({
     cors: true,
     hmr: {
       port: 5174
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      }
     }
   }
 })
