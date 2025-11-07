@@ -7,6 +7,9 @@ const PersistentMqtt = () => {
   const [topics, setTopics] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState([]);
+  const [editingDevice, setEditingDevice] = useState(null);
+  const [editPublishTopics, setEditPublishTopics] = useState('');
+  const [editSubscribeTopics, setEditSubscribeTopics] = useState('');
 
   useEffect(() => {
     fetchDevices();
@@ -81,14 +84,75 @@ const PersistentMqtt = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ topics: topicPatterns })
+        body: JSON.stringify({ 
+          publishTopics: topicPatterns,
+          subscribeTopics: topicPatterns
+        })
       });
       
       if (response.ok) {
         setTopics('');
         setSelectedDevice('');
         setErrors([]);
+        fetchDevices();
         alert('Topics updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating topics:', error);
+    }
+    setLoading(false);
+  };
+
+  const parseTopics = (publishAcl) => {
+    if (!publishAcl) return [];
+    try {
+      const topics = JSON.parse(publishAcl);
+      return topics.map(t => t.pattern.replace('iet/', '')).join(', ');
+    } catch {
+      return '';
+    }
+  };
+
+  const handleEditTopics = (device) => {
+    setEditingDevice(device.client_id);
+    setEditPublishTopics(parseTopics(device.publishAcl));
+    setEditSubscribeTopics(parseTopics(device.subscribeAcl));
+  };
+
+  const handleSaveTopics = async (clientId) => {
+    const publishValidation = validateTopics(editPublishTopics);
+    const subscribeValidation = validateTopics(editSubscribeTopics);
+    
+    const allErrors = [...publishValidation.errors, ...subscribeValidation.errors];
+    if (allErrors.length > 0) {
+      setErrors(allErrors);
+      return;
+    }
+    
+    const publishPatterns = publishValidation.validTopics.map(topic => ({ pattern: topic }));
+    const subscribePatterns = subscribeValidation.validTopics.map(topic => ({ pattern: topic }));
+    
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/devices/${clientId}/topics`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          publishTopics: publishPatterns,
+          subscribeTopics: subscribePatterns
+        })
+      });
+      
+      if (response.ok) {
+        setEditingDevice(null);
+        setEditPublishTopics('');
+        setEditSubscribeTopics('');
+        setErrors([]);
+        fetchDevices();
       }
     } catch (error) {
       console.error('Error updating topics:', error);
@@ -163,6 +227,80 @@ const PersistentMqtt = () => {
               {loading ? 'Updating...' : 'Update Topics'}
             </button>
           </form>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Device Topics</h2>
+          
+          <div className="space-y-4">
+            {devices.map((device) => (
+              <div key={device.client_id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{device.client_id}</h3>
+                    
+                    {editingDevice === device.client_id ? (
+                      <div className="mt-2 space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Publish Topics</label>
+                          <input
+                            type="text"
+                            value={editPublishTopics}
+                            onChange={(e) => setEditPublishTopics(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="e.g., user3, home/new, my/#"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Subscribe Topics</label>
+                          <input
+                            type="text"
+                            value={editSubscribeTopics}
+                            onChange={(e) => setEditSubscribeTopics(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="e.g., user3, home/new, my/#"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSaveTopics(device.client_id)}
+                            disabled={loading}
+                            className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingDevice(null)}
+                            className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-1 space-y-1">
+                        <p className="text-sm text-gray-600">
+                          Publish: {parseTopics(device.publishAcl) || 'No topics configured'}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Subscribe: {parseTopics(device.subscribeAcl) || 'No topics configured'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {editingDevice !== device.client_id && (
+                    <button
+                      onClick={() => handleEditTopics(device)}
+                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                    >
+                      Edit
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
